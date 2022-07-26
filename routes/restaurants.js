@@ -9,6 +9,25 @@ router.get("/", (req, res) => {
 });
 
 router.get("/test", (req, res) => {
+  const { location } = req.query;
+  axios
+    .get(`https://api.yelp.com/v3/businesses/search?location=${location}`, {
+      headers: {
+        Authorization: `Bearer ${process.env.YELPKEY}`,
+      },
+      params: {
+        term: "restaurant",
+        limit: "5",
+      },
+    })
+    .then((apiResponse) => {
+      console.log(apiResponse.data);
+      res.status(200).json(apiResponse.data);
+    })
+    .catch(() => res.status(500).send("error"));
+});
+
+router.post("/test", (req, res) => {
   axios
     .get("https://api.yelp.com/v3/businesses/search", {
       headers: {
@@ -16,7 +35,8 @@ router.get("/test", (req, res) => {
       },
       params: {
         location: "Vancouver",
-        limit: '5',
+        term: "restaurant",
+        limit: "5",
       },
     })
     .then((apiResponse) => {
