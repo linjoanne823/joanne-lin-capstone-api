@@ -1,48 +1,57 @@
-const router = require("express").Router();
+const express = require("express");
+const router = express.Router();
+const yelpApiUrl = "https://api.yelp.com/v3/graphql";
+const { GraphQLClient } = require("graphql-request");
+
+const bodyParser = require("body-parser");
 const cors = require("cors");
-const axios = require("axios");
 router.use(cors());
+router.use(bodyParser.json());
 
-//routes
-router.get("/", (req, res) => {
-  res.send("restaurants get endpoint reached!");
+const client = new GraphQLClient(yelpApiUrl, {
+  headers: { Authorization: `Bearer ${process.env.YELPKEY}` },
 });
 
-router.get("/test", (req, res) => {
-  const { location } = req.query;
-  axios
-    .get(`https://api.yelp.com/v3/businesses/search?location=${location}`, {
-      headers: {
-        Authorization: `Bearer ${process.env.YELPKEY}`,
-      },
-      params: {
-        term: "restaurant",
-        limit: "5",
-      },
-    })
-    .then((apiResponse) => {
-      console.log(apiResponse.data);
-      res.status(200).json(apiResponse.data);
-    })
-    .catch(() => res.status(500).send("error"));
+router.get("/", async (req, res, next) => {
+  console.log(req.body);
+
+  const query = `
+      query search($term: String!, $location: String!, $categories: String!) {
+        search(
+          term: $term,
+          location: $location
+          categories: $categories
+        ) {
+        total
+        business {
+          id
+          name
+          categories{
+              title
+          }
+          rating
+          price
+          hours {
+            is_open_now
+            open {
+              start
+              end
+              day
+            }
+          }
+          location {
+            address1
+            city
+            state
+            country
+          }
+          photos
+        }
+      }
+    }`;
+  const data = await client.request(query, req.body);
+  res.json(data);
+  console.log(data);
 });
 
-router.post("/test", (req, res) => {
-  axios
-    .get("https://api.yelp.com/v3/businesses/search", {
-      headers: {
-        Authorization: `Bearer ${process.env.YELPKEY}`,
-      },
-      params: {
-        location: "Vancouver",
-        term: "restaurant",
-        limit: "5",
-      },
-    })
-    .then((apiResponse) => {
-      console.log(apiResponse.data);
-      res.status(200).json(apiResponse.data);
-    })
-    .catch(() => res.status(500).send("error"));
-});
 module.exports = router;
