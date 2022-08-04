@@ -64,7 +64,7 @@ const favouriteRecipes = [
   },
 ];
 
-router.get("/favourites/recipes", (req, res) => {
+router.get("/favourites", (req, res) => {
   const favouriteRecipe = favouriteRecipes.map((element) => {
     return {
       title: element.title,
