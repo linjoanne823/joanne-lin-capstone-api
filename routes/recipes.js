@@ -47,6 +47,7 @@ router.get("/:recipeId", (req, res) => {
 
 const favouriteRecipes = [
   {
+    id: "715497",
     title: "Berry Banana Breakfast Smoothie",
     image: "https://spoonacular.com/recipeImages/715497-312x231.jpg",
     readyInMinutes: "5",
@@ -55,6 +56,7 @@ const favouriteRecipes = [
     instructions: "many instructions",
   },
   {
+    id: "715493",
     title: "Slow Cooker Red Beans and Rice",
     image: "https://spoonacular.com/recipeImages/715493-556x370.jpg",
     readyInMinutes: "20",
@@ -64,9 +66,10 @@ const favouriteRecipes = [
   },
 ];
 
-router.get("/favourites", (req, res) => {
+router.get("/favourites/recipes", (req, res) => {
   const favouriteRecipe = favouriteRecipes.map((element) => {
     return {
+      id: element.id,
       title: element.title,
       image: element.image,
       readyInMinutes: element.readyInMinutes,
