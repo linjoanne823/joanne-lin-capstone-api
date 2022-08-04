@@ -29,26 +29,23 @@ router.post("/", async (req, res, next) => {
           categories{
             title
           }
+          display_phone
           hours {
             is_open_now
-            open {
-              start
-              end
-            }
         }
           rating
           price
           location {
             address1
             city
-            state
-            country
           }
           reviews {
             text
             rating
             time_created
-            url
+            user{
+                name
+            }
           }
           photos
         }
