@@ -64,4 +64,44 @@ router.post("/", async (req, res, next) => {
   }
 });
 
+const favouriteRestaurants = [
+  {
+    name: "Nuba in Yaletown",
+    photo:
+      "https://s3-media1.fl.yelpcdn.com/bphoto/0vWrG0-_3xrIPmjuutNoBQ/o.jpg",
+    categories: "Mediterranean",
+    ratings: "⭐⭐⭐⭐",
+    price: "$$",
+    location: "508 Davie Street",
+    reviews:
+      "I went here today as a late vegan lunch around 3pm. I love the decor and you will get free water and they clean the table after every customer. Washrooms...",
+  },
+  {
+    name: "MeeT in Yaletown",
+    photo:
+      "https://s3-media1.fl.yelpcdn.com/bphoto/e7NmgE8OZewxRbcjqIjoJw/o.jpg",
+    categories: "Comfort Food",
+    ratings: "⭐⭐⭐",
+    price: "$$",
+    location: "1165 Mainland Street",
+    reviews:
+      "I've been vegan for about 13 years and this is some of the most fantastic vegan food I've ever had. My Omni wife humored me by going with me and after she...",
+  },
+];
+//get favourite restaurants
+router.get("/favourites", (req, res) => {
+  const favouriteRestaurant = favouriteRestaurants.map((element) => {
+    return {
+      name: element.name,
+      photo: element.photo,
+      categories: element.categories,
+      ratings: element.ratings,
+      price: element.price,
+      location: element.location,
+      reviews: element.reviews,
+    };
+  });
+  res.json(favouriteRestaurant);
+});
+
 module.exports = router;
