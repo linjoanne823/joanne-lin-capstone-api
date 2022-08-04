@@ -12,6 +12,7 @@ const apiKey = process.env.SPOONACULARKEY;
 
 router.get("/", (req, res) => {
   const { diet, intolerances, cuisine } = req.query;
+  console.log(req.query);
   axios
     .get(
       `https://api.spoonacular.com/recipes/complexSearch/?apiKey=${apiKey}`,

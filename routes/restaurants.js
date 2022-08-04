@@ -12,14 +12,14 @@ const client = new GraphQLClient(yelpApiUrl, {
   headers: { Authorization: `Bearer ${process.env.YELPKEY}` },
 });
 
-router.get("/", async (req, res, next) => {
+router.post("/", async (req, res, next) => {
   console.log(req.body);
 
   const query = `
-      query search($term: String!, $location: String!, $categories: String!) {
+      query search($term: String!, $location: String, $categories: String) {
         search(
           term: $term,
-          location: $location
+          location: $location,
           categories: $categories
         ) {
         total
@@ -27,31 +27,41 @@ router.get("/", async (req, res, next) => {
           id
           name
           categories{
-              title
+            title
           }
-          rating
-          price
           hours {
             is_open_now
             open {
               start
               end
-              day
             }
-          }
+        }
+          rating
+          price
           location {
             address1
             city
             state
             country
           }
+          reviews {
+            text
+            rating
+            time_created
+            url
+          }
           photos
         }
       }
     }`;
-  const data = await client.request(query, req.body);
-  res.json(data);
-  console.log(data);
+
+  try {
+    const data = await client.request(query, req.body);
+    res.json(data);
+    console.log(data);
+  } catch (err) {
+    console.log(err);
+  }
 });
 
 module.exports = router;
