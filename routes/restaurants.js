@@ -66,6 +66,7 @@ router.post("/", async (req, res, next) => {
 
 const favouriteRestaurants = [
   {
+    id: "0bfwNvbJ58pO3TTkZIcr1A",
     name: "Nuba in Yaletown",
     photo:
       "https://s3-media1.fl.yelpcdn.com/bphoto/0vWrG0-_3xrIPmjuutNoBQ/o.jpg",
@@ -77,6 +78,7 @@ const favouriteRestaurants = [
       "I went here today as a late vegan lunch around 3pm. I love the decor and you will get free water and they clean the table after every customer. Washrooms...",
   },
   {
+    id: "mkqiEUO9KZbYtFPaDGxT0w",
     name: "MeeT in Yaletown",
     photo:
       "https://s3-media1.fl.yelpcdn.com/bphoto/e7NmgE8OZewxRbcjqIjoJw/o.jpg",
@@ -92,6 +94,7 @@ const favouriteRestaurants = [
 router.get("/favourites", (req, res) => {
   const favouriteRestaurant = favouriteRestaurants.map((element) => {
     return {
+      id: element.id,
       name: element.name,
       photo: element.photo,
       categories: element.categories,
