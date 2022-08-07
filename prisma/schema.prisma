@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Allergies {
+  allergy_id   Int     @id 
+  allergy_name String? @db.VarChar(128)
+  users Users[]
+}
+
+
+model Recipes {
+  recipe_id        Int           @id
+  ready_in_minutes String?       @db.VarChar(128)
+  servings         String?       @db.VarChar(128)
+  ingredients      String?       @db.VarChar(2048)
+  instructions     String?       @db.VarChar(2048)
+  name             String?       @db.VarChar(128)
+  users Users[]
+}
+
+model Restaurants {
+  restaurant_id   Int               @id
+  name            String?           @db.VarChar(128)
+  categories      String?           @db.VarChar(128)
+  price           String?           @db.VarChar(8)
+  rating          String?           @db.VarChar(8)
+  location        String?           @db.VarChar(128)
+  business_hours  String?           @db.VarChar(128)
+  photos          String?           @db.VarChar(128)
+  users Users[]
+}
+
+
+model Users {
+  user_id                 Int                       @id @default(autoincrement())
+  first_name              String?                   @db.VarChar(128)
+  last_name               String?                   @db.VarChar(128)
+  email                   String?                   @db.VarChar(128)
+  password                String?                   @db.VarChar(128)
+  city                    String?                   @db.VarChar(128)
+  register_date           DateTime?                 @db.DateTime(0)
+  allegies            Allergies[]
+  dietary_restrictions String? @db.VarChar(128)
+  recipes             Recipes[]
+  restaurants         Restaurants[]
+}
