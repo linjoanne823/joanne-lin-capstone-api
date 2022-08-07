@@ -12,7 +12,7 @@ router.use(bodyParser.json());
 
 router.put("/", async (req, res) => {
   const userId = req.body.userId;
-  
+
   const {
     firstName,
     lastName,
@@ -20,6 +20,7 @@ router.put("/", async (req, res) => {
     password,
     city,
     dietaryRestriction,
+    allergies,
   } = req.body;
 
   const updateUser = await prisma.Users.update({
@@ -33,6 +34,14 @@ router.put("/", async (req, res) => {
       password: password,
       city: city,
       dietary_restrictions: dietaryRestriction,
+      allergies: {
+        connectOrCreate: allergies.map((allergy)=>{
+            return {
+                where:{allergy_name: allergy},
+                create:{allergy_name:allergy}
+            }
+        })
+      },
     },
   });
   res.json(updateUser);

@@ -1,14 +1,15 @@
 -- CreateTable
 CREATE TABLE `Allergies` (
-    `allergy_id` INTEGER NOT NULL,
+    `allergy_id` INTEGER NOT NULL AUTO_INCREMENT,
     `allergy_name` VARCHAR(128) NULL,
 
+    UNIQUE INDEX `Allergies_allergy_name_key`(`allergy_name`),
     PRIMARY KEY (`allergy_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Recipes` (
-    `recipe_id` INTEGER NOT NULL,
+    `recipe_id` INTEGER NOT NULL AUTO_INCREMENT,
     `ready_in_minutes` VARCHAR(128) NULL,
     `servings` VARCHAR(128) NULL,
     `ingredients` VARCHAR(2048) NULL,
@@ -20,7 +21,7 @@ CREATE TABLE `Recipes` (
 
 -- CreateTable
 CREATE TABLE `Restaurants` (
-    `restaurant_id` INTEGER NOT NULL,
+    `restaurant_id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(128) NULL,
     `categories` VARCHAR(128) NULL,
     `price` VARCHAR(8) NULL,

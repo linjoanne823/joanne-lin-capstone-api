@@ -8,14 +8,14 @@ datasource db {
 }
 
 model Allergies {
-  allergy_id   Int     @id 
-  allergy_name String? @db.VarChar(128)
+  allergy_id   Int     @id @default(autoincrement())
+  allergy_name String? @unique @db.VarChar(128)
   users Users[]
 }
 
 
 model Recipes {
-  recipe_id        Int           @id
+  recipe_id        Int           @id @default(autoincrement())
   ready_in_minutes String?       @db.VarChar(128)
   servings         String?       @db.VarChar(128)
   ingredients      String?       @db.VarChar(2048)
@@ -25,7 +25,7 @@ model Recipes {
 }
 
 model Restaurants {
-  restaurant_id   Int               @id
+  restaurant_id   Int               @id @default(autoincrement())
   name            String?           @db.VarChar(128)
   categories      String?           @db.VarChar(128)
   price           String?           @db.VarChar(8)
@@ -45,7 +45,7 @@ model Users {
   password                String?                   @db.VarChar(128)
   city                    String?                   @db.VarChar(128)
   register_date           DateTime?                 @db.DateTime(0)
-  allegies            Allergies[]
+  allergies            Allergies[]
   dietary_restrictions String? @db.VarChar(128)
   recipes             Recipes[]
   restaurants         Restaurants[]
