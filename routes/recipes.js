@@ -3,12 +3,32 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const axios = require("axios");
 
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
+
 router.use(cors());
 router.use(bodyParser.json());
 
 const apiKey = process.env.SPOONACULARKEY;
 
 //routes
+
+router.get("/favourites", (req, res) => {
+  const favouriteRecipe = favouriteRecipes.map((element) => {
+    return {
+      id: element.id,
+      title: element.title,
+      image: element.image,
+      readyInMinutes: element.readyInMinutes,
+      servings: element.servings,
+      ingredients: element.ingredients,
+      instructions: element.instructions,
+    };
+  });
+  console.log(favouriteRecipe);
+  res.json(favouriteRecipe);
+});
 
 router.get("/", (req, res) => {
   const { diet, intolerances, cuisine } = req.query;
@@ -39,8 +59,29 @@ router.get("/:recipeId", (req, res) => {
       `https://api.spoonacular.com/recipes/${id}/information?apiKey=${apiKey}`
     )
     .then((apiResponse) => {
-      console.log(apiResponse.data);
-      res.status(200).json(apiResponse.data);
+      const newIngredientSet = apiResponse.data.extendedIngredients.map(
+        (element) => {
+          return element.original;
+        }
+      );
+
+      const newInstructionSet =
+        apiResponse.data.analyzedInstructions[0].steps.map((element) => {
+          return element.step;
+        });
+
+      const newRecipeResponse = {
+        id: id,
+        title: apiResponse.data.title,
+        image: apiResponse.data.image,
+        readyInMinutes: apiResponse.data.readyInMinutes,
+        servings: apiResponse.data.servings,
+        ingredients: newIngredientSet,
+        instructions: newInstructionSet,
+      };
+
+      console.log(newRecipeResponse);
+      res.status(200).json(newRecipeResponse);
     })
     .catch(() => res.status(500).send("error"));
 });
@@ -66,19 +107,45 @@ const favouriteRecipes = [
   },
 ];
 
-router.get("/favourites/recipes", (req, res) => {
-  const favouriteRecipe = favouriteRecipes.map((element) => {
-    return {
-      id: element.id,
-      title: element.title,
-      image: element.image,
-      readyInMinutes: element.readyInMinutes,
-      servings: element.servings,
-      ingredients: element.ingredients,
-      instructions: element.instructions,
-    };
+//post - favourite recipes
+
+router.post("/favourites", async (req, res) => {
+  console.log(req.body);
+
+  const userId = req.body.userId;
+  const {
+    id,
+    title,
+    image,
+    readyInMinutes,
+    servings,
+    ingredients,
+    instructions,
+  } = req.body.recipeDetails;
+
+  const params = {
+    recipe_id: parseInt(id),
+    name: title,
+    ready_in_minutes: readyInMinutes.toString(),
+    servings: servings.toString(),
+    ingredients: ingredients.join("\n"),
+    instructions: instructions.join("\n"),
+    photo: image,
+    users: {
+      connect: {
+        user_id: userId,
+      },
+    },
+  };
+
+  const favouriteRecipes = await prisma.Recipes.upsert({
+    where: {
+      recipe_id: parseInt(id),
+    },
+    create: params,
+    update: params,
   });
-  res.json(favouriteRecipe);
+  console.log(favouriteRecipes);
 });
 
 module.exports = router;

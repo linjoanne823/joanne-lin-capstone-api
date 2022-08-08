@@ -21,6 +21,7 @@ model Recipes {
   ingredients      String?       @db.VarChar(2048)
   instructions     String?       @db.VarChar(2048)
   name             String?       @db.VarChar(128)
+  photo          String?           @db.VarChar(256)
   users Users[]
 }
 
@@ -32,7 +33,7 @@ model Restaurants {
   rating          String?           @db.VarChar(8)
   location        String?           @db.VarChar(128)
   business_hours  String?           @db.VarChar(128)
-  photos          String?           @db.VarChar(128)
+  photos          String?           @db.VarChar(256)
   users Users[]
 }
 
