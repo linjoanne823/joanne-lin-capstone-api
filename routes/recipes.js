@@ -15,14 +15,20 @@ const apiKey = process.env.SPOONACULARKEY;
 //routes
 
 router.get("/favourites", async (req, res) => {
-  const recipeId = req.body.id;
-  const favouriteRecipes = await prisma.Recipes.findMany({
+  const userId = req.query.userId
+  //goes into Users table and include all the recipes tied to this user
+  const user = await prisma.Users.findUnique({ 
     where: {
-      recipe_id: recipeId,
+      user_id: parseInt(userId),
+    },
+    include: {
+      recipes:true,
     },
   });
 
-  console.log(favouriteRecipes);
+  const favouriteRecipes = user.recipes
+
+  console.log(user)
 
   favouriteRecipes.forEach((element) => {
     element.ingredients = element.ingredients.split("\n");
@@ -38,7 +44,6 @@ router.get("/favourites", async (req, res) => {
 
 router.get("/", (req, res) => {
   const { diet, intolerances, cuisine } = req.query;
-  console.log(req.query);
   axios
     .get(
       `https://api.spoonacular.com/recipes/complexSearch/?apiKey=${apiKey}`,
@@ -51,7 +56,6 @@ router.get("/", (req, res) => {
       }
     )
     .then((apiResponse) => {
-      console.log(apiResponse.data);
       res.status(200).json(apiResponse.data);
     })
     .catch(() => res.status(500).send("error"));
@@ -114,27 +118,6 @@ router.get("/:recipeId", (req, res) => {
     .catch(() => res.status(500).send("error"));
 });
 
-const favouriteRecipes = [
-  {
-    id: "715497",
-    title: "Berry Banana Breakfast Smoothie",
-    image: "https://spoonacular.com/recipeImages/715497-312x231.jpg",
-    readyInMinutes: "5",
-    servings: "1",
-    ingredients: "many ingredients",
-    instructions: "many instructions",
-  },
-  {
-    id: "715493",
-    title: "Slow Cooker Red Beans and Rice",
-    image: "https://spoonacular.com/recipeImages/715493-556x370.jpg",
-    readyInMinutes: "20",
-    servings: "2",
-    ingredients: "many ingredients",
-    instructions: "many instructions",
-  },
-];
-
 //post - favourite recipes
 
 router.post("/favourites", async (req, res) => {
@@ -174,6 +157,29 @@ router.post("/favourites", async (req, res) => {
     update: params,
   });
   //   console.log(favouriteRecipes);
+});
+
+//delete - unfavourite recipes
+
+router.delete("/favourites", async (req, res) => {
+  console.log(req.body);
+  const userId = req.body.userId;
+  const recipeId = req.body.recipeDetails.recipe_id;
+
+  await prisma.Recipes.update({
+    where: {
+      recipe_id: parseInt(recipeId),
+    },
+    data: {
+      users: {
+        disconnect: [{ user_id: userId }],
+      },
+    },
+    include: {
+      users: true,
+    },
+  });
+  console.log(recipeId);
 });
 
 module.exports = router;
