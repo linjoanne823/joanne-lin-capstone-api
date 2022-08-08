@@ -14,20 +14,26 @@ const apiKey = process.env.SPOONACULARKEY;
 
 //routes
 
-router.get("/favourites", (req, res) => {
-  const favouriteRecipe = favouriteRecipes.map((element) => {
-    return {
-      id: element.id,
-      title: element.title,
-      image: element.image,
-      readyInMinutes: element.readyInMinutes,
-      servings: element.servings,
-      ingredients: element.ingredients,
-      instructions: element.instructions,
-    };
+router.get("/favourites", async (req, res) => {
+  const recipeId = req.body.id;
+  const favouriteRecipes = await prisma.Recipes.findMany({
+    where: {
+      recipe_id: recipeId,
+    },
   });
-  console.log(favouriteRecipe);
-  res.json(favouriteRecipe);
+
+  console.log(favouriteRecipes);
+
+  favouriteRecipes.forEach((element) => {
+    element.ingredients = element.ingredients.split("\n");
+    element.instructions = element.instructions.split("\n");
+    element.image = element.photo;
+    element.title = element.name;
+    element.readyInMinutes = element.ready_in_minutes;
+    element.isLiked = true;
+  });
+
+  res.json(favouriteRecipes);
 });
 
 router.get("/", (req, res) => {
@@ -53,12 +59,13 @@ router.get("/", (req, res) => {
 
 router.get("/:recipeId", (req, res) => {
   const id = req.params.recipeId;
+  const userId = req.query.userId;
 
   axios
     .get(
       `https://api.spoonacular.com/recipes/${id}/information?apiKey=${apiKey}`
     )
-    .then((apiResponse) => {
+    .then(async (apiResponse) => {
       const newIngredientSet = apiResponse.data.extendedIngredients.map(
         (element) => {
           return element.original;
@@ -80,8 +87,29 @@ router.get("/:recipeId", (req, res) => {
         instructions: newInstructionSet,
       };
 
-      console.log(newRecipeResponse);
-      res.status(200).json(newRecipeResponse);
+      prisma.Recipes.findUnique({
+        where: {
+          recipe_id: parseInt(id),
+        },
+        include: {
+          users: true,
+        },
+      })
+        .then((userRecipe) => {
+          if (userRecipe === null) {
+            newRecipeResponse.isLiked = false;
+          } else {
+            newRecipeResponse.isLiked = userRecipe.users.some(
+              (user) => (user.user_id = userId)
+            );
+          }
+          res.status(200).json(newRecipeResponse);
+        })
+        .catch((err) => {
+          newRecipeResponse.isLiked = false;
+          res.status(200).json(newRecipeResponse);
+          console.log(err);
+        });
     })
     .catch(() => res.status(500).send("error"));
 });
@@ -110,7 +138,7 @@ const favouriteRecipes = [
 //post - favourite recipes
 
 router.post("/favourites", async (req, res) => {
-  console.log(req.body);
+  //   console.log(req.body);
 
   const userId = req.body.userId;
   const {
@@ -145,7 +173,7 @@ router.post("/favourites", async (req, res) => {
     create: params,
     update: params,
   });
-  console.log(favouriteRecipes);
+  //   console.log(favouriteRecipes);
 });
 
 module.exports = router;
