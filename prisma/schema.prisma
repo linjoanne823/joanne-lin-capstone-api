@@ -32,8 +32,10 @@ model Restaurants {
   price           String?           @db.VarChar(8)
   rating          String?           @db.VarChar(8)
   location        String?           @db.VarChar(128)
-  business_hours  String?           @db.VarChar(128)
   photos          String?           @db.VarChar(256)
+  reviewUser       String?           @db.VarChar(128)
+  reviewRating     String?           @db.VarChar(128)
+  reviewText       String?           @db.VarChar(2048)
   users Users[]
 }
 

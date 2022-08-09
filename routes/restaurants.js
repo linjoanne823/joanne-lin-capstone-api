@@ -17,14 +17,12 @@ const client = new GraphQLClient(yelpApiUrl, {
   headers: { Authorization: `Bearer ${process.env.YELPKEY}` },
 });
 
-
-
 router.post("/", async (req, res, next) => {
   console.log(req.body);
 
-  const userId = req.query.userId
+  const userId = req.query.userId;
 
-//   id=req.query.business.id
+  //   id=req.query.business.id
 
   const query = `
       query search($term: String!, $location: String, $categories: String) {
@@ -63,104 +61,96 @@ router.post("/", async (req, res, next) => {
       }
     }`;
 
-
-
-
   try {
     const data = await client.request(query, req.body);
-    // res.json(data);
+    //reformat this to fit restaurant database 
+    //will need to reformat front-end
 
-    // prisma.Restaurants.findMany({
-    //     where:{
-    //         restaurant_id: data.search.business.id
-    //     },
-    //     include:{
-    //         users:true
-    //     }
-    // })
-
-    // const userAndRestaurant = (userRestaurant)=>{
-    //     if(userRestaurant === null){
-    //         data.search.business.isLiked = false;
-    //     }else{
-    //         data.search.business.isLiked=userRestaurant.users.some((user)=>(
-    //             user.user_id = userId
-    //         ))
-    //     }
-
-    // }
-    // userAndRestaurant();
-
-    res.status(200).json(data)
-
-  
+    res.status(200).json(data);
   } catch (err) {
     console.log(err);
   }
 });
 
 //post favourite restaurants
-router.post("/favourites", async(req, res) => {
+router.post("/favourites", async (req, res) => {
+  const userId = req.body.userId;
+  console.log(userId);
 
-    const userId = req.body.userId
-    console.log(userId)
+  const { id, name, photos, price, rating, location, reviews, categories } =
+    req.body.restaurant;
 
-    const {
-        id,
-        name,
-        photos,
-        price,
-        rating,
-        location,
-        reviews,
-        categories,
- 
-    } = req.body.restaurant;
+  const newCategories = categories.map((element) => {
+    return element.title;
+  });
+  const reviewUser = reviews.map((element) => {
+    return element.user.name;
+  });
+  const reviewRating = reviews.map((element) => {
+    return element.rating;
+  });
+  const reviewText = reviews.map((element) => {
+    return element.text;
+  });
 
-    const params ={
-        restaurant_id: id,
-        name: name,
-        photos: photos[0],
-        // categories: categories,
-        price: price,
-        rating: rating.toString(),
-        // location: location,
-        // reviews: reviews,
-        users:{
-            connect:{
-                user_id:userId,
-            }
-        }
-    };
-    
-    const favouriteRestaurants = await prisma.Restaurants.upsert({
-        where:{
-            restaurant_id: id,
-        },
-        create: params,
-        update: params,
-    })
+  const params = {
+    restaurant_id: id,
+    name: name,
+    photos: photos[0],
+    categories: newCategories.toString(),
+    price: price,
+    rating: rating.toString(),
+    location: location.address1,
+    reviewUser: reviewUser.toString(),
+    reviewRating: reviewRating.toString(),
+    reviewText: reviewText.toString(),
 
-    console.log(favouriteRestaurants)
+    users: {
+      connect: {
+        user_id: userId,
+      },
+    },
+  };
+
+  const favouriteRestaurants = await prisma.Restaurants.upsert({
+    where: {
+      restaurant_id: id,
+    },
+    create: params,
+    update: params,
+  });
+
+  console.log(favouriteRestaurants);
 });
 
 //get favourite restaurants
-router.get("/favourites", async(req,res)=>{
-    const userId = req.query.userId
-    const user = await prisma.Users.findUnique({
-        where:{
-            user_id: parseInt(userId),
-        },
-        include:{
-            restaurants:true,
-        }
+router.get("/favourites", async (req, res) => {
+  const userId = req.query.userId;
+  const user = await prisma.Users.findUnique({
+    where: {
+      user_id: parseInt(userId),
+    },
+    include: {
+      restaurants: true,
+    },
+  });
+  console.log("the user id is" + userId);
 
-    })
-    console.log("the user id is" + userId)
+  const favouriteRestaurants = user.restaurants;
 
-    const favouriteRestaurants = user.restaurants
+  favouriteRestaurants.forEach((element) => {
+    element.name = element.name;
+    element.categories = element.categories;
+    // element.price=
+    // element.rating
+    // element.location
+    element.photos = element.photos;
+    // element.reviewUser
+    // element.reviewRating
+    // element.reviewText
+  });
 
-    res.json(favouriteRestaurants)
-})
+  res.json(favouriteRestaurants);
+});
 
 module.exports = router;
