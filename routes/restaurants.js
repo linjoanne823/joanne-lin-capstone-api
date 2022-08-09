@@ -63,7 +63,7 @@ router.post("/", async (req, res, next) => {
 
   try {
     const data = await client.request(query, req.body);
-    //reformat this to fit restaurant database 
+    //reformat this to fit restaurant database
     //will need to reformat front-end
 
     res.status(200).json(data);
@@ -83,15 +83,6 @@ router.post("/favourites", async (req, res) => {
   const newCategories = categories.map((element) => {
     return element.title;
   });
-  const reviewUser = reviews.map((element) => {
-    return element.user.name;
-  });
-  const reviewRating = reviews.map((element) => {
-    return element.rating;
-  });
-  const reviewText = reviews.map((element) => {
-    return element.text;
-  });
 
   const params = {
     restaurant_id: id,
@@ -101,9 +92,7 @@ router.post("/favourites", async (req, res) => {
     price: price,
     rating: rating.toString(),
     location: location.address1,
-    reviewUser: reviewUser.toString(),
-    reviewRating: reviewRating.toString(),
-    reviewText: reviewText.toString(),
+    reviews: reviews,
 
     users: {
       connect: {

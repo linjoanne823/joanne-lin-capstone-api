@@ -15,20 +15,21 @@ CREATE TABLE `Recipes` (
     `ingredients` VARCHAR(2048) NULL,
     `instructions` VARCHAR(2048) NULL,
     `name` VARCHAR(128) NULL,
+    `photo` VARCHAR(256) NULL,
 
     PRIMARY KEY (`recipe_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Restaurants` (
-    `restaurant_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `restaurant_id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(128) NULL,
     `categories` VARCHAR(128) NULL,
     `price` VARCHAR(8) NULL,
     `rating` VARCHAR(8) NULL,
     `location` VARCHAR(128) NULL,
-    `business_hours` VARCHAR(128) NULL,
-    `photos` VARCHAR(128) NULL,
+    `photos` VARCHAR(256) NULL,
+    `reviews` JSON NULL,
 
     PRIMARY KEY (`restaurant_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -67,7 +68,7 @@ CREATE TABLE `_RecipesToUsers` (
 
 -- CreateTable
 CREATE TABLE `_RestaurantsToUsers` (
-    `A` INTEGER NOT NULL,
+    `A` VARCHAR(191) NOT NULL,
     `B` INTEGER NOT NULL,
 
     UNIQUE INDEX `_RestaurantsToUsers_AB_unique`(`A`, `B`),
