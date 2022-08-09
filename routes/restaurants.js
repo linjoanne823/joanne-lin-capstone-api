@@ -22,8 +22,6 @@ router.post("/", async (req, res, next) => {
 
   const userId = req.query.userId;
 
-  //   id=req.query.business.id
-
   const query = `
       query search($term: String!, $location: String, $categories: String) {
         search(
@@ -63,9 +61,20 @@ router.post("/", async (req, res, next) => {
 
   try {
     const data = await client.request(query, req.body);
-    //reformat this to fit restaurant database
-    //will need to reformat front-end
-
+    // const favouritedRestaurants =(userRestaurant)=>{
+    //     if(userRestaurant === null){
+    //         data.search.business.map((element)=>{
+    //             return element.isLiked = false
+    //         })
+    //     }else{
+    //         data.search.business.map((element)=>{
+    //             return element.isLiked = userRestaurant.users.some(
+    //                 (user)=>(user.user_id = userId)
+    //             )
+    //         })
+    //     }
+    // }
+    // favouritedRestaurants();
     res.status(200).json(data);
   } catch (err) {
     console.log(err);
@@ -80,6 +89,7 @@ router.post("/favourites", async (req, res) => {
   const { id, name, photos, price, rating, location, reviews, categories } =
     req.body.restaurant;
 
+
   const newCategories = categories.map((element) => {
     return element.title;
   });
@@ -93,6 +103,7 @@ router.post("/favourites", async (req, res) => {
     rating: rating.toString(),
     location: location.address1,
     reviews: reviews,
+    
 
     users: {
       connect: {
@@ -129,17 +140,35 @@ router.get("/favourites", async (req, res) => {
 
   favouriteRestaurants.forEach((element) => {
     element.name = element.name;
-    element.categories = element.categories;
-    // element.price=
-    // element.rating
-    // element.location
     element.photos = element.photos;
-    // element.reviewUser
-    // element.reviewRating
-    // element.reviewText
+    // element.isLiked = true;
   });
 
   res.json(favouriteRestaurants);
 });
+
+//delete - unfavourite restaurants 
+
+router.delete("/favourites", async(req,res)=>{
+    console.log(req.body);
+    const userId = req.body.userId;
+    const id = req.body.restaurant.restaurant_id;
+
+    await prisma.Restaurants.update({
+        where:{
+            restaurant_id: id,   
+        },
+        data:{
+            users:{
+                disconnect: [{user_id: userId}]
+            },
+        },
+        include:{
+            users: true
+        }
+
+    })
+    console.log(id)
+})
 
 module.exports = router;
