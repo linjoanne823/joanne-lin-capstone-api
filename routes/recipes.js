@@ -100,7 +100,8 @@ router.get("/:recipeId", (req, res) => {
         },
       })
         .then((userRecipe) => {
-          if (userRecipe === null) {
+          if (userRecipe === null) { //if the user + recipe joint table is null
+            //then isLiked is false 
             newRecipeResponse.isLiked = false;
           } else {
             newRecipeResponse.isLiked = userRecipe.users.some(
@@ -132,7 +133,7 @@ router.post("/favourites", async (req, res) => {
     servings,
     ingredients,
     instructions,
-  } = req.body.recipeDetails;
+  } = req.body.recipeDetails; //this is from the front-end recipeDetails
 
   const params = {
     recipe_id: parseInt(id),

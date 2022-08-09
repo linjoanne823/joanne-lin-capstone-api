@@ -3,8 +3,13 @@ const router = express.Router();
 const yelpApiUrl = "https://api.yelp.com/v3/graphql";
 const { GraphQLClient } = require("graphql-request");
 
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
+
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const { argsToArgsConfig } = require("graphql/type/definition");
 router.use(cors());
 router.use(bodyParser.json());
 
@@ -12,8 +17,14 @@ const client = new GraphQLClient(yelpApiUrl, {
   headers: { Authorization: `Bearer ${process.env.YELPKEY}` },
 });
 
+
+
 router.post("/", async (req, res, next) => {
   console.log(req.body);
+
+  const userId = req.query.userId
+
+//   id=req.query.business.id
 
   const query = `
       query search($term: String!, $location: String, $categories: String) {
@@ -52,56 +63,104 @@ router.post("/", async (req, res, next) => {
       }
     }`;
 
+
+
+
   try {
     const data = await client.request(query, req.body);
-    res.json(data);
-    console.log(data);
+    // res.json(data);
+
+    // prisma.Restaurants.findMany({
+    //     where:{
+    //         restaurant_id: data.search.business.id
+    //     },
+    //     include:{
+    //         users:true
+    //     }
+    // })
+
+    // const userAndRestaurant = (userRestaurant)=>{
+    //     if(userRestaurant === null){
+    //         data.search.business.isLiked = false;
+    //     }else{
+    //         data.search.business.isLiked=userRestaurant.users.some((user)=>(
+    //             user.user_id = userId
+    //         ))
+    //     }
+
+    // }
+    // userAndRestaurant();
+
+    res.status(200).json(data)
+
+  
   } catch (err) {
     console.log(err);
   }
 });
 
-const favouriteRestaurants = [
-  {
-    id: "0bfwNvbJ58pO3TTkZIcr1A",
-    name: "Nuba in Yaletown",
-    photo:
-      "https://s3-media1.fl.yelpcdn.com/bphoto/0vWrG0-_3xrIPmjuutNoBQ/o.jpg",
-    categories: "Mediterranean",
-    ratings: "⭐⭐⭐⭐",
-    price: "$$",
-    location: "508 Davie Street",
-    reviews:
-      "I went here today as a late vegan lunch around 3pm. I love the decor and you will get free water and they clean the table after every customer. Washrooms...",
-  },
-  {
-    id: "mkqiEUO9KZbYtFPaDGxT0w",
-    name: "MeeT in Yaletown",
-    photo:
-      "https://s3-media1.fl.yelpcdn.com/bphoto/e7NmgE8OZewxRbcjqIjoJw/o.jpg",
-    categories: "Comfort Food",
-    ratings: "⭐⭐⭐",
-    price: "$$",
-    location: "1165 Mainland Street",
-    reviews:
-      "I've been vegan for about 13 years and this is some of the most fantastic vegan food I've ever had. My Omni wife humored me by going with me and after she...",
-  },
-];
-//get favourite restaurants
-router.get("/favourites", (req, res) => {
-  const favouriteRestaurant = favouriteRestaurants.map((element) => {
-    return {
-      id: element.id,
-      name: element.name,
-      photo: element.photo,
-      categories: element.categories,
-      ratings: element.ratings,
-      price: element.price,
-      location: element.location,
-      reviews: element.reviews,
+//post favourite restaurants
+router.post("/favourites", async(req, res) => {
+
+    const userId = req.body.userId
+    console.log(userId)
+
+    const {
+        id,
+        name,
+        photos,
+        price,
+        rating,
+        location,
+        reviews,
+        categories,
+ 
+    } = req.body.restaurant;
+
+    const params ={
+        restaurant_id: id,
+        name: name,
+        photos: photos[0],
+        // categories: categories,
+        price: price,
+        rating: rating.toString(),
+        // location: location,
+        // reviews: reviews,
+        users:{
+            connect:{
+                user_id:userId,
+            }
+        }
     };
-  });
-  res.json(favouriteRestaurant);
+    
+    const favouriteRestaurants = await prisma.Restaurants.upsert({
+        where:{
+            restaurant_id: id,
+        },
+        create: params,
+        update: params,
+    })
+
+    console.log(favouriteRestaurants)
 });
+
+//get favourite restaurants
+router.get("/favourites", async(req,res)=>{
+    const userId = req.query.userId
+    const user = await prisma.Users.findUnique({
+        where:{
+            user_id: parseInt(userId),
+        },
+        include:{
+            restaurants:true,
+        }
+
+    })
+    console.log("the user id is" + userId)
+
+    const favouriteRestaurants = user.restaurants
+
+    res.json(favouriteRestaurants)
+})
 
 module.exports = router;

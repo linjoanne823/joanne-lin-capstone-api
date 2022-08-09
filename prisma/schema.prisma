@@ -26,7 +26,7 @@ model Recipes {
 }
 
 model Restaurants {
-  restaurant_id   Int               @id @default(autoincrement())
+  restaurant_id   String              @id @default(cuid())
   name            String?           @db.VarChar(128)
   categories      String?           @db.VarChar(128)
   price           String?           @db.VarChar(8)
