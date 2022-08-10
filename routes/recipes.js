@@ -15,20 +15,20 @@ const apiKey = process.env.SPOONACULARKEY;
 //routes
 
 router.get("/favourites", async (req, res) => {
-  const userId = req.query.userId
+  const userId = req.query.userId;
   //goes into Users table and include all the recipes tied to this user
-  const user = await prisma.Users.findUnique({ 
+  const user = await prisma.Users.findUnique({
     where: {
       user_id: parseInt(userId),
     },
     include: {
-      recipes:true,
+      recipes: true,
     },
   });
 
-  const favouriteRecipes = user.recipes
+  const favouriteRecipes = user.recipes;
 
-  console.log(user)
+  console.log(user);
 
   favouriteRecipes.forEach((element) => {
     element.ingredients = element.ingredients.split("\n");
@@ -82,7 +82,7 @@ router.get("/:recipeId", (req, res) => {
         });
 
       const newRecipeResponse = {
-        id: id,
+        recipe_id: id,
         title: apiResponse.data.title,
         image: apiResponse.data.image,
         readyInMinutes: apiResponse.data.readyInMinutes,
@@ -100,8 +100,9 @@ router.get("/:recipeId", (req, res) => {
         },
       })
         .then((userRecipe) => {
-          if (userRecipe === null) { //if the user + recipe joint table is null
-            //then isLiked is false 
+          if (userRecipe === null) {
+            //if the user + recipe joint table is null
+            //then isLiked is false
             newRecipeResponse.isLiked = false;
           } else {
             newRecipeResponse.isLiked = userRecipe.users.some(
@@ -126,7 +127,7 @@ router.post("/favourites", async (req, res) => {
 
   const userId = req.body.userId;
   const {
-    id,
+    recipe_id,
     title,
     image,
     readyInMinutes,
@@ -136,7 +137,7 @@ router.post("/favourites", async (req, res) => {
   } = req.body.recipeDetails; //this is from the front-end recipeDetails
 
   const params = {
-    recipe_id: parseInt(id),
+    recipe_id: parseInt(recipe_id),
     name: title,
     ready_in_minutes: readyInMinutes.toString(),
     servings: servings.toString(),
@@ -152,7 +153,7 @@ router.post("/favourites", async (req, res) => {
 
   const favouriteRecipes = await prisma.Recipes.upsert({
     where: {
-      recipe_id: parseInt(id),
+      recipe_id: parseInt(recipe_id),
     },
     create: params,
     update: params,

@@ -61,6 +61,23 @@ router.post("/", async (req, res, next) => {
 
   try {
     const data = await client.request(query, req.body);
+
+    const newRestaurantResponse = data.search.business.map(({ id, name, photos, price, rating, location, reviews, categories }) => {
+      return {
+        restaurant_id: id,
+        name: name,
+        photos: photos,
+        price: price,
+        rating: rating,
+        location: location,
+        reviews: reviews,
+        categories: categories,
+      };
+    });
+
+    // const newRestaurantResponse = data.search.business.forEach((element)=>{
+    //     element.id =
+    // })
     // const favouritedRestaurants =(userRestaurant)=>{
     //     if(userRestaurant === null){
     //         data.search.business.map((element)=>{
@@ -75,7 +92,9 @@ router.post("/", async (req, res, next) => {
     //     }
     // }
     // favouritedRestaurants();
-    res.status(200).json(data);
+    // console.log(data.search.business)
+
+    res.status(200).json(newRestaurantResponse);
   } catch (err) {
     console.log(err);
   }
@@ -86,16 +105,15 @@ router.post("/favourites", async (req, res) => {
   const userId = req.body.userId;
   console.log(userId);
 
-  const { id, name, photos, price, rating, location, reviews, categories } =
+  const { restaurant_id, name, photos, price, rating, location, reviews, categories } =
     req.body.restaurant;
-
 
   const newCategories = categories.map((element) => {
     return element.title;
   });
 
   const params = {
-    restaurant_id: id,
+    restaurant_id: restaurant_id,
     name: name,
     photos: photos[0],
     categories: newCategories.toString(),
@@ -103,7 +121,6 @@ router.post("/favourites", async (req, res) => {
     rating: rating.toString(),
     location: location.address1,
     reviews: reviews,
-    
 
     users: {
       connect: {
@@ -114,7 +131,7 @@ router.post("/favourites", async (req, res) => {
 
   const favouriteRestaurants = await prisma.Restaurants.upsert({
     where: {
-      restaurant_id: id,
+      restaurant_id: restaurant_id,
     },
     create: params,
     update: params,
@@ -147,28 +164,27 @@ router.get("/favourites", async (req, res) => {
   res.json(favouriteRestaurants);
 });
 
-//delete - unfavourite restaurants 
+//delete - unfavourite restaurants
 
-router.delete("/favourites", async(req,res)=>{
-    console.log(req.body);
-    const userId = req.body.userId;
-    const id = req.body.restaurant.restaurant_id;
+router.delete("/favourites", async (req, res) => {
+  console.log(req.body.restaurant);
+  const userId = req.body.userId;
+  const id = req.body.restaurant.restaurant_id;
 
-    await prisma.Restaurants.update({
-        where:{
-            restaurant_id: id,   
-        },
-        data:{
-            users:{
-                disconnect: [{user_id: userId}]
-            },
-        },
-        include:{
-            users: true
-        }
-
-    })
-    console.log(id)
-})
+  await prisma.Restaurants.update({
+    where: {
+      restaurant_id: id,
+    },
+    data: {
+      users: {
+        disconnect: [{ user_id: userId }],
+      },
+    },
+    include: {
+      users: true,
+    },
+  });
+//   console.log(id);
+});
 
 module.exports = router;
