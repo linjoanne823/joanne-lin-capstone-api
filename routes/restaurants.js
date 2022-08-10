@@ -62,37 +62,33 @@ router.post("/", async (req, res, next) => {
   try {
     const data = await client.request(query, req.body);
 
-    const newRestaurantResponse = data.search.business.map(({ id, name, photos, price, rating, location, reviews, categories }) => {
-      return {
-        restaurant_id: id,
-        name: name,
-        photos: photos,
-        price: price,
-        rating: rating,
-        location: location,
-        reviews: reviews,
-        categories: categories,
-      };
-    });
+    const newRestaurantResponse = data.search.business.map(
+      ({ id, name, photos, price, rating, location, reviews, categories }) => {
+        return {
+          restaurant_id: id,
+          name: name,
+          photos: photos,
+          price: price,
+          rating: rating,
+          location: location,
+          reviews: reviews,
+          categories: categories,
+        };
+      }
+    );
 
-    // const newRestaurantResponse = data.search.business.forEach((element)=>{
-    //     element.id =
-    // })
-    // const favouritedRestaurants =(userRestaurant)=>{
-    //     if(userRestaurant === null){
-    //         data.search.business.map((element)=>{
-    //             return element.isLiked = false
-    //         })
+    // const checkLikedRestaurants =(restaurantThatUserLiked)=>{
+    //     console.log("hello")
+    //     if(restaurantThatUserLiked===null){
+    //         newRestaurantResponse.isLiked = false;
     //     }else{
-    //         data.search.business.map((element)=>{
-    //             return element.isLiked = userRestaurant.users.some(
-    //                 (user)=>(user.user_id = userId)
-    //             )
-    //         })
+    //         newRestaurantResponse.isLiked=true
     //     }
+
     // }
-    // favouritedRestaurants();
-    // console.log(data.search.business)
+
+    // const userRestaurant = checkLikedRestaurants()//i dont know what to put here
+    console.log("the user restaurant is" + getRestaurant);
 
     res.status(200).json(newRestaurantResponse);
   } catch (err) {
@@ -100,13 +96,66 @@ router.post("/", async (req, res, next) => {
   }
 });
 
+//get single restaurant
+router.get("/:restaurantId", async (req, res) => {
+  const restaurant_id = req.params.restaurantId;
+  const userId = req.body.userId;
+
+  const {
+    restaurant_id,
+    name,
+    photos,
+    price,
+    rating,
+    location,
+    reviews,
+    categories,
+  } = req.body.restaurantDetails;
+
+  const restaurantResponse = {
+    restaurant_id: restaurant_id,
+    name: name,
+    photos: photos,
+    price: price,
+    rating: rating,
+    location: location,
+    reviews: reviews,
+    categories: categories,
+  };
+
+  const getRestaurant = await prisma.Restaurants.findUnique({
+    where: {
+      restaurant_id: restaurant_id,
+    },
+    includes: {
+      users: true,
+    },
+  });
+  //getRestaurant is userRecipe
+
+  if (getRestaurant === null) {
+    restaurantResponse.isLiked = false;
+  } else {
+    restaurantResponse.isLiked = getRestaurant.users.some(
+      (user) => (user.user_id = userId)
+    );
+  }
+});
 //post favourite restaurants
 router.post("/favourites", async (req, res) => {
   const userId = req.body.userId;
   console.log(userId);
 
-  const { restaurant_id, name, photos, price, rating, location, reviews, categories } =
-    req.body.restaurant;
+  const {
+    restaurant_id,
+    name,
+    photos,
+    price,
+    rating,
+    location,
+    reviews,
+    categories,
+  } = req.body.restaurant;
 
   const newCategories = categories.map((element) => {
     return element.title;
@@ -184,7 +233,7 @@ router.delete("/favourites", async (req, res) => {
       users: true,
     },
   });
-//   console.log(id);
+  //   console.log(id);
 });
 
 module.exports = router;

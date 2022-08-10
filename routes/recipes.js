@@ -101,12 +101,12 @@ router.get("/:recipeId", (req, res) => {
       })
         .then((userRecipe) => {
           if (userRecipe === null) {
-            //if the user + recipe joint table is null
+            //if the recipe that the user liked is null(not there)
             //then isLiked is false
             newRecipeResponse.isLiked = false;
           } else {
             newRecipeResponse.isLiked = userRecipe.users.some(
-              (user) => (user.user_id = userId)
+              (user) => (user.user_id = userId) //this evaluates to true
             );
           }
           res.status(200).json(newRecipeResponse);
