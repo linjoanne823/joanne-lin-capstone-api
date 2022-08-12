@@ -76,6 +76,44 @@ router.post("/", async (req, res, next) => {
         };
       }
     );
+    console.log(newRestaurantResponse);
+    //this clones the object
+    const databaseRestaurant = JSON.parse(
+      JSON.stringify(newRestaurantResponse)
+    ).map(
+      ({
+        restaurant_id,
+        name,
+        photos,
+        price,
+        rating,
+        location,
+        reviews,
+        categories,
+      }) => {
+        return {
+          restaurant_id: restaurant_id,
+          name: name,
+          photos: photos.toString(),
+          price: price,
+          rating: rating.toString(),
+          location: location.address1,
+          reviews: reviews,
+          categories: categories
+            .map((element) => {
+              return element.title;
+            })
+            .join(","),
+        };
+      }
+    );
+
+    await prisma.Restaurants.createMany({
+      data: databaseRestaurant,
+      skipDuplicates: true,
+    }); //returns count of the number of restaurants created
+
+    console.log(databaseRestaurant);
 
     // const checkLikedRestaurants =(restaurantThatUserLiked)=>{
     //     console.log("hello")
@@ -88,59 +126,13 @@ router.post("/", async (req, res, next) => {
     // }
 
     // const userRestaurant = checkLikedRestaurants()//i dont know what to put here
-    console.log("the user restaurant is" + getRestaurant);
 
-    res.status(200).json(newRestaurantResponse);
+    res.status(200).json(databaseRestaurant);
   } catch (err) {
     console.log(err);
   }
 });
 
-//get single restaurant
-router.get("/:restaurantId", async (req, res) => {
-  const restaurant_id = req.params.restaurantId;
-  const userId = req.body.userId;
-
-  const {
-    restaurant_id,
-    name,
-    photos,
-    price,
-    rating,
-    location,
-    reviews,
-    categories,
-  } = req.body.restaurantDetails;
-
-  const restaurantResponse = {
-    restaurant_id: restaurant_id,
-    name: name,
-    photos: photos,
-    price: price,
-    rating: rating,
-    location: location,
-    reviews: reviews,
-    categories: categories,
-  };
-
-  const getRestaurant = await prisma.Restaurants.findUnique({
-    where: {
-      restaurant_id: restaurant_id,
-    },
-    includes: {
-      users: true,
-    },
-  });
-  //getRestaurant is userRecipe
-
-  if (getRestaurant === null) {
-    restaurantResponse.isLiked = false;
-  } else {
-    restaurantResponse.isLiked = getRestaurant.users.some(
-      (user) => (user.user_id = userId)
-    );
-  }
-});
 //post favourite restaurants
 router.post("/favourites", async (req, res) => {
   const userId = req.body.userId;
@@ -155,17 +147,18 @@ router.post("/favourites", async (req, res) => {
     location,
     reviews,
     categories,
-  } = req.body.restaurant;
+  } = req.body.restaurantDetails;
 
-  const newCategories = categories.map((element) => {
-    return element.title;
-  });
+  console.log(req.body.restaurantDetails);
+  //   const newCategories = categories.map((element) => {
+  //     return element.title;
+  //   });
 
   const params = {
     restaurant_id: restaurant_id,
     name: name,
-    photos: photos[0],
-    categories: newCategories.toString(),
+    photos: photos,
+    categories: categories,
     price: price,
     rating: rating.toString(),
     location: location.address1,
@@ -203,22 +196,60 @@ router.get("/favourites", async (req, res) => {
   console.log("the user id is" + userId);
 
   const favouriteRestaurants = user.restaurants;
+  console.log(user.restaurants);
 
   favouriteRestaurants.forEach((element) => {
     element.name = element.name;
     element.photos = element.photos;
-    // element.isLiked = true;
+    element.isLiked = true;
   });
 
   res.json(favouriteRestaurants);
 });
 
+//get single restaurant
+router.get("/:restaurantId", async (req, res) => {
+  const restaurant_id = req.params.restaurantId;
+  const userId = req.query.userId;
+
+  const userRestaurant = await prisma.Restaurants.findUnique({
+    where: {
+      restaurant_id: restaurant_id,
+    },
+    include: {
+      users: true,
+    },
+  });
+
+  //   const getRestaurant = await prisma.Restaurants.findUnique({
+  //     where: {
+  //       restaurant_id: restaurant_id,
+  //     },
+  //   });
+  //unsure why isLiked always evaluates to false
+
+  //getRestaurant is userRecipe - its the joint table
+
+  // so instead of res.sending the joined table,
+  //i should have another response object
+
+  //the response object should be just the restaurants table
+
+  //   res.status(200).send(getRestaurant)
+
+  userRestaurant.isLiked = userRestaurant.users.some(
+    (user) => (user.user_id = userId)
+  );
+
+  res.status(200).json(userRestaurant);
+});
+
 //delete - unfavourite restaurants
 
 router.delete("/favourites", async (req, res) => {
-  console.log(req.body.restaurant);
+//   console.log(req.body.restaurant);
   const userId = req.body.userId;
-  const id = req.body.restaurant.restaurant_id;
+  const id = req.body.restaurantDetails.restaurant_id
 
   await prisma.Restaurants.update({
     where: {
