@@ -163,10 +163,9 @@ router.post("/favourites", async (req, res) => {
 
 //delete - unfavourite recipes
 
-router.delete("/favourites", async (req, res) => {
-  console.log(req.body);
-  const userId = req.body.userId;
-  const recipeId = req.body.recipeDetails.recipe_id;
+router.delete("/favourites/:recipeId", async (req, res) => {
+  const userId = req.query.userId;
+  const recipeId = req.params.recipeId;
 
   await prisma.Recipes.update({
     where: {
@@ -174,14 +173,10 @@ router.delete("/favourites", async (req, res) => {
     },
     data: {
       users: {
-        disconnect: [{ user_id: userId }],
+        disconnect: [{ user_id: parseInt(userId) }],
       },
     },
-    include: {
-      users: true,
-    },
   });
-  console.log(recipeId);
 });
 
 module.exports = router;

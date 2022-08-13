@@ -246,10 +246,9 @@ router.get("/:restaurantId", async (req, res) => {
 
 //delete - unfavourite restaurants
 
-router.delete("/favourites", async (req, res) => {
-//   console.log(req.body.restaurant);
-  const userId = req.body.userId;
-  const id = req.body.restaurantDetails.restaurant_id
+router.delete("/favourites/:restaurantId", async (req, res) => {
+  const userId = req.query.userId;
+  const id = req.params.restaurantId
 
   await prisma.Restaurants.update({
     where: {
@@ -257,14 +256,11 @@ router.delete("/favourites", async (req, res) => {
     },
     data: {
       users: {
-        disconnect: [{ user_id: userId }],
+        disconnect: [{ user_id: parseInt(userId) }],
       },
     },
-    include: {
-      users: true,
-    },
   });
-  //   console.log(id);
+ 
 });
 
 module.exports = router;
