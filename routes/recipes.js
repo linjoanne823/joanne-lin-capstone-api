@@ -76,10 +76,17 @@ router.get("/:recipeId", (req, res) => {
         }
       );
 
-      const newInstructionSet =
-        apiResponse.data.analyzedInstructions[0].steps.map((element) => {
-          return element.step;
-        });
+      let newInstructionSet;
+
+      try {
+        newInstructionSet = apiResponse.data.analyzedInstructions[0].steps.map(
+          (element) => {
+            return element.step;
+          }
+        );
+      } catch (err) {
+        newInstructionSet = [];
+      }
 
       const newRecipeResponse = {
         recipe_id: id,
@@ -117,7 +124,10 @@ router.get("/:recipeId", (req, res) => {
           console.log(err);
         });
     })
-    .catch(() => res.status(500).send("error"));
+    .catch((err) => {
+      console.log(err);
+      res.status(500).send("error");
+    });
 });
 
 //post - favourite recipes
