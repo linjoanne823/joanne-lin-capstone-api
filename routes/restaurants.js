@@ -3,8 +3,13 @@ const router = express.Router();
 const yelpApiUrl = "https://api.yelp.com/v3/graphql";
 const { GraphQLClient } = require("graphql-request");
 
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
+
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const { argsToArgsConfig } = require("graphql/type/definition");
 router.use(cors());
 router.use(bodyParser.json());
 
@@ -14,6 +19,8 @@ const client = new GraphQLClient(yelpApiUrl, {
 
 router.post("/", async (req, res, next) => {
   console.log(req.body);
+
+  const userId = req.query.userId;
 
   const query = `
       query search($term: String!, $location: String, $categories: String) {
@@ -54,54 +61,206 @@ router.post("/", async (req, res, next) => {
 
   try {
     const data = await client.request(query, req.body);
-    res.json(data);
-    console.log(data);
+
+    const newRestaurantResponse = data.search.business.map(
+      ({ id, name, photos, price, rating, location, reviews, categories }) => {
+        return {
+          restaurant_id: id,
+          name: name,
+          photos: photos,
+          price: price,
+          rating: rating,
+          location: location,
+          reviews: reviews,
+          categories: categories,
+        };
+      }
+    );
+    console.log(newRestaurantResponse);
+    //this clones the object
+    const databaseRestaurant = JSON.parse(
+      JSON.stringify(newRestaurantResponse)
+    ).map(
+      ({
+        restaurant_id,
+        name,
+        photos,
+        price,
+        rating,
+        location,
+        reviews,
+        categories,
+      }) => {
+        return {
+          restaurant_id: restaurant_id,
+          name: name,
+          photos: photos.toString(),
+          price: price,
+          rating: rating.toString(),
+          location: location.address1,
+          reviews: reviews,
+          categories: categories
+            .map((element) => {
+              return element.title;
+            })
+            .join(","),
+        };
+      }
+    );
+
+    await prisma.Restaurants.createMany({
+      data: databaseRestaurant,
+      skipDuplicates: true,
+    }); //returns count of the number of restaurants created
+
+    console.log(databaseRestaurant);
+
+    // const checkLikedRestaurants =(restaurantThatUserLiked)=>{
+    //     console.log("hello")
+    //     if(restaurantThatUserLiked===null){
+    //         newRestaurantResponse.isLiked = false;
+    //     }else{
+    //         newRestaurantResponse.isLiked=true
+    //     }
+
+    // }
+
+    // const userRestaurant = checkLikedRestaurants()//i dont know what to put here
+
+    res.status(200).json(databaseRestaurant);
   } catch (err) {
     console.log(err);
   }
 });
 
-const favouriteRestaurants = [
-  {
-    id: "0bfwNvbJ58pO3TTkZIcr1A",
-    name: "Nuba in Yaletown",
-    photo:
-      "https://s3-media1.fl.yelpcdn.com/bphoto/0vWrG0-_3xrIPmjuutNoBQ/o.jpg",
-    categories: "Mediterranean",
-    ratings: "⭐⭐⭐⭐",
-    price: "$$",
-    location: "508 Davie Street",
-    reviews:
-      "I went here today as a late vegan lunch around 3pm. I love the decor and you will get free water and they clean the table after every customer. Washrooms...",
-  },
-  {
-    id: "mkqiEUO9KZbYtFPaDGxT0w",
-    name: "MeeT in Yaletown",
-    photo:
-      "https://s3-media1.fl.yelpcdn.com/bphoto/e7NmgE8OZewxRbcjqIjoJw/o.jpg",
-    categories: "Comfort Food",
-    ratings: "⭐⭐⭐",
-    price: "$$",
-    location: "1165 Mainland Street",
-    reviews:
-      "I've been vegan for about 13 years and this is some of the most fantastic vegan food I've ever had. My Omni wife humored me by going with me and after she...",
-  },
-];
-//get favourite restaurants
-router.get("/favourites", (req, res) => {
-  const favouriteRestaurant = favouriteRestaurants.map((element) => {
-    return {
-      id: element.id,
-      name: element.name,
-      photo: element.photo,
-      categories: element.categories,
-      ratings: element.ratings,
-      price: element.price,
-      location: element.location,
-      reviews: element.reviews,
-    };
+//post favourite restaurants
+router.post("/favourites", async (req, res) => {
+  const userId = req.body.userId;
+  console.log(userId);
+
+  const {
+    restaurant_id,
+    name,
+    photos,
+    price,
+    rating,
+    location,
+    reviews,
+    categories,
+  } = req.body.restaurantDetails;
+
+  console.log(req.body.restaurantDetails);
+  //   const newCategories = categories.map((element) => {
+  //     return element.title;
+  //   });
+
+  const params = {
+    restaurant_id: restaurant_id,
+    name: name,
+    photos: photos,
+    categories: categories,
+    price: price,
+    rating: rating.toString(),
+    location: location.address1,
+    reviews: reviews,
+
+    users: {
+      connect: {
+        user_id: userId,
+      },
+    },
+  };
+
+  const favouriteRestaurants = await prisma.Restaurants.upsert({
+    where: {
+      restaurant_id: restaurant_id,
+    },
+    create: params,
+    update: params,
   });
-  res.json(favouriteRestaurant);
+
+  console.log(favouriteRestaurants);
+});
+
+//get favourite restaurants
+router.get("/favourites", async (req, res) => {
+  const userId = req.query.userId;
+  const user = await prisma.Users.findUnique({
+    where: {
+      user_id: parseInt(userId),
+    },
+    include: {
+      restaurants: true,
+    },
+  });
+  console.log("the user id is" + userId);
+
+  const favouriteRestaurants = user.restaurants;
+  console.log(user.restaurants);
+
+  favouriteRestaurants.forEach((element) => {
+    element.name = element.name;
+    element.photos = element.photos;
+    element.isLiked = true;
+  });
+
+  res.json(favouriteRestaurants);
+});
+
+//get single restaurant
+router.get("/:restaurantId", async (req, res) => {
+  const restaurant_id = req.params.restaurantId;
+  const userId = req.query.userId;
+
+  const userRestaurant = await prisma.Restaurants.findUnique({
+    where: {
+      restaurant_id: restaurant_id,
+    },
+    include: {
+      users: true,
+    },
+  });
+
+  //   const getRestaurant = await prisma.Restaurants.findUnique({
+  //     where: {
+  //       restaurant_id: restaurant_id,
+  //     },
+  //   });
+  //unsure why isLiked always evaluates to false
+
+  //getRestaurant is userRecipe - its the joint table
+
+  // so instead of res.sending the joined table,
+  //i should have another response object
+
+  //the response object should be just the restaurants table
+
+  //   res.status(200).send(getRestaurant)
+
+  userRestaurant.isLiked = userRestaurant.users.some(
+    (user) => (user.user_id = userId)
+  );
+
+  res.status(200).json(userRestaurant);
+});
+
+//delete - unfavourite restaurants
+
+router.delete("/favourites/:restaurantId", async (req, res) => {
+  const userId = req.query.userId;
+  const id = req.params.restaurantId
+
+  await prisma.Restaurants.update({
+    where: {
+      restaurant_id: id,
+    },
+    data: {
+      users: {
+        disconnect: [{ user_id: parseInt(userId) }],
+      },
+    },
+  });
+ 
 });
 
 module.exports = router;
