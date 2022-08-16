@@ -33,18 +33,21 @@ passport.use(
       //create the user
       const user = await prisma.Users.create({
         data: {
-          first_name: req.body.first_name,
-          last_name: req.body.last_name,
+          first_name: req.body.firstName,
+          last_name: req.body.lastName,
           email: req.body.email,
           password: await hash(req.body.password),
           city: req.body.city,
+          dietary_restrictions: req.body.diet,
+          allergies: req.body.intolerances,
+          register_date: new Date(),
         },
       });
-      if(!emailExists){
-          return callback(null, user,{
-              message:"Successfully created account",
-              statusCode:201
-          })
+      if (!emailExists) {
+        return callback(null, user, {
+          message: "Successfully created account",
+          statusCode: 201,
+        });
       }
     } catch (err) {
       console.error(err.message);
@@ -77,13 +80,12 @@ passport.use(
         });
       }
 
-      if(user && validPassword){
-          return callback(null, user,{
-              message:"Welcome back!",
-              statusCode:200
-          })
+      if (user && validPassword) {
+        return callback(null, user, {
+          message: "Welcome back!",
+          statusCode: 200,
+        });
       }
-     
     } catch (err) {
       console.error(err.message);
       return callback(null, err);

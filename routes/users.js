@@ -20,7 +20,8 @@ router.post("/signup", (req, res, next) => {
     //check for errors
     if (err) throw new Error(err);
 
-    const { message, statusCode } = info;
+    const { message } = info;
+    const statusCode = info.statusCode || 403;
 
     //generate token
     const token = generateToken(user.id);
@@ -41,7 +42,8 @@ router.post("/login", (req, res, next) => {
     //check for errors
     if (err) throw new Error(err);
 
-    const { message, statusCode } = info;
+    const { message } = info;
+    const statusCode = info.statusCode || 403;
 
     //generate token
     const token = generateToken(user.id);
