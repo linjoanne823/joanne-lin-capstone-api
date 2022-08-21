@@ -62,13 +62,13 @@ router.put("/", async (req, res) => {
   const userId = req.body.userId;
 
   const {
-    firstName,
-    lastName,
-    email,
-    password,
-    city,
-    dietaryRestriction,
-    allergies,
+    firstNameContext,
+    lastNameContext,
+    emailContext,
+    // password,
+    locationContext,
+    dietContext,
+    allergiesContext,
   } = req.body;
 
   const updateUser = await prisma.Users.update({
@@ -76,20 +76,13 @@ router.put("/", async (req, res) => {
       user_id: userId,
     },
     data: {
-      first_name: firstName,
-      last_name: lastName,
-      email: email,
-      password: password,
-      city: city,
-      dietary_restrictions: dietaryRestriction,
-      allergies: {
-        connectOrCreate: allergies.map((allergy) => {
-          return {
-            where: { allergy_name: allergy },
-            create: { allergy_name: allergy },
-          };
-        }),
-      },
+      first_name: firstNameContext,
+      last_name: lastNameContext,
+      email: emailContext,
+    //   password: password,
+      city: locationContext,
+      dietary_restrictions: dietContext,
+      allergies: allergiesContext,
     },
   });
   res.json(updateUser);
