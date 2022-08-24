@@ -7,7 +7,6 @@
 * [Technologies Used](#technologies-used)
 * [Features](#features)
 * [Setup](#setup)
-* [Usage](#usage)
 * [Project Status](#project-status)
 
 
@@ -32,9 +31,10 @@ The end users are people who don't have the time to browse through the internet 
 
 ## Features
 List the ready features here:
-- Awesome feature 1
-- Awesome feature 2
-- Awesome feature 3
+- Stores User Data when User signs up with dietary info 
+- Stores user's favourite recipes and restaurants 
+- Updates user favourites accordingly using DELETE and POST 
+- Fetches YELP restaurant data using GraphyQL query
 
 
 ## Setup
@@ -43,26 +43,11 @@ List the ready features here:
 - For migrations, you can use the `db-setup` command
 
 
-## Usage
-How does one go about using it?
-Provide various use cases and code examples here.
-
-`write-your-code-here`
 
 
 ## Project Status
-Project is: _in progress_ / _complete_ / _no longer being worked on_. If you are no longer working on it, provide reasons why.
+Project is: _in progress_ 
 
 
-## Room for Improvement
-Include areas you believe need improvement / could be improved. Also add TODOs for future development.
-
-Room for improvement:
-- Improvement to be done 1
-- Improvement to be done 2
-
-To do:
-- Feature to be added 1
-- Feature to be added 2
 
 
