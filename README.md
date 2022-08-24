@@ -30,7 +30,6 @@ The end users are people who don't have the time to browse through the internet 
 
 
 ## Features
-List the ready features here:
 - Stores User Data when User signs up with dietary info 
 - Stores user's favourite recipes and restaurants 
 - Updates user favourites accordingly using DELETE and POST 
