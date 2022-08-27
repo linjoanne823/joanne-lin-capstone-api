@@ -35,6 +35,7 @@ The end users are people who don't have the time to browse through the internet 
 - Stores User Data when User signs up with dietary info 
 - Stores user's favourite recipes and restaurants 
 - Updates user favourites accordingly using DELETE and POST 
+- Fetches recipe data from Spoonacular API 
 - Fetches YELP restaurant data using GraphyQL query
 
 
