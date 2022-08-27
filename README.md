@@ -1,6 +1,6 @@
 # FoodieGram
 > FoodieGram finds you the best recipes that fits your dietary restrictions and preferred cuisines. If you are not in the mood to cook, no worries! We will find you restaurants near you that suit your taste. 
-> Live demo [https://foodiegram.joannelin.ca]
+> Live demo [http://foodiegram.joannelin.ca]
 
 ## Table of Contents
 * [General Info](#general-information)
@@ -13,10 +13,12 @@
 
 
 ## General Information
-- What problem does it (intend to) solve?
+### What problem does it (intend to) solve?
+
 Users spend a lot of time browsing different websites looking for the right recipes and restaurants. More often than not, users have to re-enter their dietary restrictions every time they look up what to cook/where to dine.
 
-- What is the purpose of your project?
+### What is the purpose of your project?
+
 The end users are people who don't have the time to browse through the internet to look for recipes and restaurants, specifically those with dietary restrictions. Users will use this application to save their dietary restrictions so that they will only see recipes and restaurants that accomodate their needs.
 
 
