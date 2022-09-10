@@ -11,7 +11,6 @@ const recipesRoute = require("./routes/recipes");
 const restaurantsRoute = require("./routes/restaurants");
 const usersRoute = require("./routes/users");
 
-
 const users = [];
 
 const PORT = process.env.PORT;
@@ -33,6 +32,12 @@ app.use(passport.session());
 app.use("/recipes", recipesRoute);
 app.use("/restaurants", restaurantsRoute);
 app.use("/users", usersRoute);
+
+//health check endpoint for load balancer 
+//to balance traffic
+app.all("/health", (req, res) => {
+  res.send(200);
+});
 
 app.all("*", (req, res) => {
   res.status(404).send("resource not found");
