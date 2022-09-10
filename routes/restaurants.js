@@ -115,17 +115,7 @@ router.post("/", async (req, res, next) => {
 
     console.log(databaseRestaurant);
 
-    // const checkLikedRestaurants =(restaurantThatUserLiked)=>{
-    //     console.log("hello")
-    //     if(restaurantThatUserLiked===null){
-    //         newRestaurantResponse.isLiked = false;
-    //     }else{
-    //         newRestaurantResponse.isLiked=true
-    //     }
-
-    // }
-
-    // const userRestaurant = checkLikedRestaurants()//i dont know what to put here
+    
 
     res.status(200).json(databaseRestaurant);
   } catch (err) {
@@ -150,9 +140,7 @@ router.post("/favourites", async (req, res) => {
   } = req.body.restaurantDetails;
 
   console.log(req.body.restaurantDetails);
-  //   const newCategories = categories.map((element) => {
-  //     return element.title;
-  //   });
+  
 
   const params = {
     restaurant_id: restaurant_id,
@@ -221,24 +209,10 @@ router.get("/:restaurantId", async (req, res) => {
     },
   });
 
-  //   const getRestaurant = await prisma.Restaurants.findUnique({
-  //     where: {
-  //       restaurant_id: restaurant_id,
-  //     },
-  //   });
-  //unsure why isLiked always evaluates to false
-
-  //getRestaurant is userRecipe - its the joint table
-
-  // so instead of res.sending the joined table,
-  //i should have another response object
-
-  //the response object should be just the restaurants table
-
-  //   res.status(200).send(getRestaurant)
+  
 
   userRestaurant.isLiked = userRestaurant.users.some(
-    (user) => (user.user_id = userId)
+    (user) => (user.user_id === userId)
   );
 
   res.status(200).json(userRestaurant);

@@ -113,7 +113,7 @@ router.get("/:recipeId", (req, res) => {
             newRecipeResponse.isLiked = false;
           } else {
             newRecipeResponse.isLiked = userRecipe.users.some(
-              (user) => (user.user_id = userId) //this evaluates to true
+              (user) => (user.user_id === userId) //this evaluates to true
             );
           }
           res.status(200).json(newRecipeResponse);
@@ -168,7 +168,6 @@ router.post("/favourites", async (req, res) => {
     create: params,
     update: params,
   });
-  //   console.log(favouriteRecipes);
 });
 
 //delete - unfavourite recipes
