@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "db-setup": "npx prisma migrate dev --name relationships_init",
     "seed": "node prisma/seed.js"
   },
@@ -35,9 +35,11 @@
     "graphql-yoga": "^2.13.4",
     "jsonwebtoken": "^8.5.1",
     "passport": "^0.6.0",
-    "passport-local": "^1.0.0"
+    "passport-local": "^1.0.0",
+    "sinon": "^14.0.0"
   },
   "devDependencies": {
+    "jest": "^29.0.3",
     "prisma": "^4.1.1"
   }
 }

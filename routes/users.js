@@ -6,6 +6,7 @@ const { generateToken } = require("../src/utils");
 const passport = require("passport");
 const session = require("express-session");
 const jwt = require("jsonwebtoken");
+const authorize = require('../src/middleware/authorize')
 
 const { PrismaClient } = require("@prisma/client");
 require("../src/passport/local");
@@ -59,27 +60,6 @@ router.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
-//user auth middleware
-function authorize(req, res, next) {
-  const token = req.headers.authorization.split(" ")[1];
-  if (token) {
-    console.log("Auth Token:", token);
-    const result = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("auth result", result);
-    if (result) {
-      // Decode the token to pass along to end-points that may need
-      // access to data stored in the token.
-      const decode = jwt.decode(token);
-      console.log("decode is: ", decode);
-      req.decode = decode;
-      next();
-    } else {
-      res.status(403).json({ error: "Not Authorized." });
-    }
-  } else {
-    res.status(403).json({ error: "No token. Unauthorized." });
-  }
-}
 
 // get user profile
 router.get("/", authorize, async (req, res) => {
