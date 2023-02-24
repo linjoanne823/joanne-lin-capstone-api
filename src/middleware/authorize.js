@@ -1,9 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
 const jwt = require("jsonwebtoken");
-
 
 function authorizeMiddleware(req, res, next) {
     if(!req.headers.authorization){

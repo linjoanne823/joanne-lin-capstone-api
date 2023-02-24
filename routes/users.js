@@ -62,17 +62,19 @@ router.post("/login", (req, res, next) => {
 
 
 // get user profile
-router.get("/", authorize, async (req, res) => {
+router.get("/", passport.authenticate("jwt", {session: false}), async (req, res) => {
   const user = await prisma.Users.findUnique({
     where: {
-      user_id: req.decode.id,
+      user_id: req.user.id,
     },
   });
-  delete user.password;
+  delete user?.password;
   res.status(201).json(user);
 });
 //edit profile
-router.put("/", async (req, res) => {
+router.put("/", passport.authenticate("jwt", {session: false}), 
+// if you hit the secure route, its going to trigger the jwt authentication strategy
+ async (req, res) => {
   const userId = req.query.userId;
 
   const {

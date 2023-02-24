@@ -5,6 +5,9 @@ const { hash, compare } = require("../utils");
 const passport = require("passport");
 require("dotenv").config();
 const session = require("express-session");
+const JwtStrategy = require('passport-jwt').Strategy;
+const ExtractJWT = require('passport-jwt').ExtractJwt;
+
 
 const prisma = new PrismaClient();
 
@@ -15,7 +18,6 @@ const options = {
   passReqToCallback: true,
 };
 
-// module.exports =
 //Passport middleware for signup
 passport.use(
   "signup",
@@ -56,7 +58,6 @@ passport.use(
   })
 );
 
-// module.exports =
 //Passport middleware for login
 options.passReqToCallback = false;
 passport.use(
@@ -92,3 +93,38 @@ passport.use(
     }
   })
 );
+
+//Passport middleware for user profile
+passport.use(
+  new JwtStrategy (
+      {
+          secretOrKey: process.env.JWT_SECRET,
+          jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken()
+          //jwtFromRequest is where you get your jwt 
+
+      },
+      async (token, done) => { //this is the verify function
+
+          console.log("in jwt strategy, token: ", token); //token is the jwt_payload, which is an object literal containing the decoded JWT payload
+          //done is a passport error first callback accepting arguments done(error, user, info)
+
+          console.log(token)
+
+          //Don't make it though the getJwt function check. No token
+          //prints unauthorized 
+          
+          //Invalid token: again doesn't make it into this function. Prints authorized
+
+          // Makes it into this function but gets app error (displays erroe message. No redirecting)
+
+          if(!token.id){
+              let testError = new Error (
+                  "there's no id!"
+              );
+              return done(testError, false);
+          }
+          console.log('done')
+          return done(null, token);
+          }
+  )
+)
