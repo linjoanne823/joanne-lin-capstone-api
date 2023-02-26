@@ -1,13 +1,12 @@
 const { PrismaClient } = require("@prisma/client");
 const { Strategy } = require("passport-local");
-const LocalStrategy = require("passport-local").Strategy;
+// const LocalStrategy = require("passport-local").Strategy;
 const { hash, compare } = require("../utils");
 const passport = require("passport");
 require("dotenv").config();
-const session = require("express-session");
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJWT = require('passport-jwt').ExtractJwt;
-
+// const session = require("express-session");
+const JwtStrategy = require("passport-jwt").Strategy;
+const ExtractJWT = require("passport-jwt").ExtractJwt;
 
 const prisma = new PrismaClient();
 
@@ -26,7 +25,7 @@ passport.use(
       //check if the user already exists
       const emailExists = await prisma.Users.findFirst({ where: { email } });
       if (emailExists) {
-        return callback(null, false, {
+        return callback(null, false, { // null means no error in this authentication logic, false indicates no user found
           message: "Email already exists",
           statusCode: 400,
         });
@@ -59,10 +58,11 @@ passport.use(
 );
 
 //Passport middleware for login
-options.passReqToCallback = false;
+options.passReqToCallback = false; //we want to set this false because if true, the arguments passed to the function call would be request, email, password
 passport.use(
   "login",
   new Strategy(options, async (email, password, callback) => {
+  
     try {
       //check if user exists
       const user = await prisma.Users.findFirst({ where: { email } });
@@ -96,35 +96,26 @@ passport.use(
 
 //Passport middleware for user profile
 passport.use(
-  new JwtStrategy (
-      {
-          secretOrKey: process.env.JWT_SECRET,
-          jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken()
-          //jwtFromRequest is where you get your jwt 
+  new JwtStrategy(
+    {
+      secretOrKey: process.env.JWT_SECRET,
+      jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+      //jwtFromRequest is where you get your jwt
+    },
+    async (token, done) => {
+      //this is the verify function
 
-      },
-      async (token, done) => { //this is the verify function
+      console.log("in jwt strategy, token: ", token); //token is the jwt_payload, which is an object literal containing the decoded JWT payload
+      //done is a passport error first callback accepting arguments done(error, user, info)
 
-          console.log("in jwt strategy, token: ", token); //token is the jwt_payload, which is an object literal containing the decoded JWT payload
-          //done is a passport error first callback accepting arguments done(error, user, info)
+      console.log(token);
 
-          console.log(token)
-
-          //Don't make it though the getJwt function check. No token
-          //prints unauthorized 
-          
-          //Invalid token: again doesn't make it into this function. Prints authorized
-
-          // Makes it into this function but gets app error (displays erroe message. No redirecting)
-
-          if(!token.id){
-              let testError = new Error (
-                  "there's no id!"
-              );
-              return done(testError, false);
-          }
-          console.log('done')
-          return done(null, token);
-          }
+      if (!token.id) {
+        let testError = new Error("there's no id!");
+        return done(testError, false);
+      }
+      console.log("done");
+      return done(null, token);
+    }
   )
-)
+);

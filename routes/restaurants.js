@@ -108,7 +108,7 @@ router.post("/", async (req, res, next) => {
       }
     );
 
-    await prisma.Restaurants.createMany({
+    await prisma.Restaurants.createMany({ //createMany creates multiple restaurants an skips duplicates
       data: databaseRestaurant,
       skipDuplicates: true,
     }); //returns count of the number of restaurants created
@@ -153,7 +153,7 @@ router.post("/favourites", async (req, res) => {
     reviews: reviews,
 
     users: {
-      connect: {
+      connect: {  //connect existing restaurant id to a user id 
         user_id: userId,
       },
     },

@@ -41,7 +41,7 @@ router.get("/favourites", async (req, res) => {
 
   res.json(favouriteRecipes);
 });
-
+//display all recipes that match the query
 router.get("/", (req, res) => {
   const { diet, intolerances, cuisine } = req.query;
   axios
@@ -60,10 +60,10 @@ router.get("/", (req, res) => {
     })
     .catch(() => res.status(500).send("error"));
 });
-
+//display a single selected recipe
 router.get("/:recipeId", (req, res) => {
-  const id = req.params.recipeId;
-  const userId = req.query.userId;
+  const id = req.params.recipeId; //params contains route parameters (in the path portion of the URL)
+  const userId = parseInt(req.query.userId); //query is after the ? in the url
 
   axios
     .get(
@@ -99,28 +99,33 @@ router.get("/:recipeId", (req, res) => {
       };
 
       prisma.Recipes.findUnique({
+        //this recipes table is from "favourites"
         where: {
+          //returns that favourite recipe
           recipe_id: parseInt(id),
         },
         include: {
+          //and includes the users in the result
           users: true,
         },
       })
         .then((userRecipe) => {
           if (userRecipe === null) {
-            //if the recipe that the user liked is null(not there)
-            //then isLiked is false
+            //if the recipe is not there
+            //then isLiked is false (not favourited)
             newRecipeResponse.isLiked = false;
           } else {
             newRecipeResponse.isLiked = userRecipe.users.some(
-              (user) => (user.user_id === userId) //this evaluates to true
+              //looks at the users in RecipeToUsers table
+              //and checks if we have a user_id that matches the userId in the query
+              (user) => user.user_id === userId //this evaluates to true
             );
           }
           res.status(200).json(newRecipeResponse);
         })
         .catch((err) => {
-          newRecipeResponse.isLiked = false;
-          res.status(200).json(newRecipeResponse);
+          newRecipeResponse.isLiked = false; //this is error handling
+          res.status(200).json(newRecipeResponse); //even if the error is there, the user will still see the recipe
           console.log(err);
         });
     })
@@ -151,12 +156,12 @@ router.post("/favourites", async (req, res) => {
     name: title,
     ready_in_minutes: readyInMinutes.toString(),
     servings: servings.toString(),
-    ingredients: ingredients.join("\n"),
+    ingredients: ingredients.join("\n"), //separated by line break
     instructions: instructions.join("\n"),
     photo: image,
     users: {
       connect: {
-        user_id: userId,
+        user_id: userId, //connects to existing user
       },
     },
   };
@@ -175,7 +180,8 @@ router.post("/favourites", async (req, res) => {
 router.delete("/favourites/:recipeId", async (req, res) => {
   const userId = req.query.userId;
   const recipeId = req.params.recipeId;
-
+  // deletes that record in the RecipesToUsers join table
+  // if theres no record, there's no relationship
   await prisma.Recipes.update({
     where: {
       recipe_id: parseInt(recipeId),
